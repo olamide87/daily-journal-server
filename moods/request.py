@@ -51,3 +51,14 @@ def get_single_mood(id):
 
     return json.dumps(moods)
 
+
+def delete_mood(id):
+    with sqlite3.connect('../../dailyjournal.db') as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        DELETE FROM moods
+        WHERE id = ?
+        """, (id, ))
+
+
