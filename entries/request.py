@@ -2,6 +2,24 @@ import sqlite3
 import json
 from models import Entry, Mood
 
+
+def create_journal_entry(new_entry):
+    with sqlite3.connect('../../dailyjournal.db') as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        INSERT INTO entries
+            (concept, entry, date, moodId)
+        VALUES
+            (?, ?, ?, ?)
+        """, (new_entry['concept'], new_entry['entry'], new_entry['date'], new_entry['moodId']))
+
+        id = db_cursor.lastrowid
+        new_entry['id'] = id
+
+    return json.dumps(new_entry)
+
+
 def get_all_entries():
     # Open a connection to the database
     with sqlite3.connect("./db/dailyjournal.db") as conn:
