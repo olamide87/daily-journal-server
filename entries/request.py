@@ -1,6 +1,6 @@
 import sqlite3
 import json
-from models import Entry
+from models import Entry, Mood
 
 def get_all_entries():
     # Open a connection to the database
@@ -43,23 +43,36 @@ def get_all_entries():
     return json.dumps(entries)
 
 def get_single_entry(id):
-  with sqlite3.connect("./db/dailyjournal.db") as conn:
-    conn.row_factory = sqlite3.Row
-    db_cursor = conn.cursor()
+    with sqlite3.connect('../../dailyjournal.db') as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
 
-    db_cursor.execute("""
-    SELECT 
-      e.id,
-      e.concept,
-      e.entry,
-      e.date,
-      e.moodId
-    FROM entries e
-    WHERE e.id = ?
-    """, (id, ))
+        db_cursor.execute("""
+        SELECT
+            e.id,
+            e.concept,
+            e.entry,
+            e.date,
+            e.moodId,
+            m.label
+        FROM entries e
+        JOIN moods m
+            ON e.moodId = m.id
+        WHERE e.id = ?
+        """, (id, ))
 
-    data = db_cursor.fetchone()
+        entries = []
 
-    entry = Entry(data['id'], data['concept'], data['entry'],
-                            data['date'], data['moodId'])
-    return json.dumps(entry.__dict__)    
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            entry = Entry(row['id'], row['concept'],
+                          row['entry'], row['date'], row['moodId'])
+
+            mood = Mood(row['moodId'], row['label'])
+
+            entry.mood = mood.__dict__
+
+            entries.append(entry.__dict__)
+
+    return json.dumps(entries)
